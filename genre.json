@@ -4,8 +4,40 @@
         "subGenre": "暴擊流"
     },
     {
-        "mainGenre": "普攻流",
-        "subGenre": "大招流"
+        "mainGenre": "閃避流",
+        "subGenre": "回復流"
+    },
+    {
+        "mainGenre": "生命流",
+        "subGenre": "急速流"
+    },
+    {
+        "mainGenre": "回復流",
+        "subGenre": "急速流"
+    },
+    {
+        "mainGenre": "護盾流",
+        "subGenre": "戰前"
+    },
+    {
+        "mainGenre": "中毒流",
+        "subGenre": "戰前"
+    },
+    {
+        "mainGenre": "易傷流",
+        "subGenre": "急速流"
+    },
+    {
+        "mainGenre": "易傷流",
+        "subGenre": "護盾流"
+    },
+    {
+        "mainGenre": "精靈流",
+        "subGenre": "冰凍流"
+    },
+    {
+        "mainGenre": "怒氣流",
+        "subGenre": "生命流"
     },
     {
         "mainGenre": "怒氣流",
