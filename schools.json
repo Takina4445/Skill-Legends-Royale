@@ -1,0 +1,147 @@
+[
+    {
+        "id": "普攻流",
+        "color": "#4CAF50",
+        "icon": "⚔",
+        "AdvantageousMatchingGenres": [
+            "暴擊流",
+            "回復流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "閃避流"
+        ]
+    },
+    {
+        "id": "閃避流",
+        "color": "#9C27B0",
+        "icon": "🌀",
+        "AdvantageousMatchingGenres": [
+            "冰凍流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "易傷流"
+        ]
+    },
+    {
+        "id": "暴擊流",
+        "color": "#F44336",
+        "icon": "💥",
+        "AdvantageousMatchingGenres": [
+            "普攻流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "護盾流"
+        ]
+    },
+    {
+        "id": "生命流",
+        "color": "#2196F3",
+        "icon": "❤",
+        "AdvantageousMatchingGenres": [
+            "護盾流",
+            "回復流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "中毒流"
+        ]
+    },
+    {
+        "id": "回復流",
+        "color": "#00BCD4",
+        "icon": "💊",
+        "AdvantageousMatchingGenres": [
+            "生命流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "中毒流"
+        ]
+    },
+    {
+        "id": "大招流",
+        "color": "#FF9800",
+        "icon": "✨",
+        "AdvantageousMatchingGenres": [
+            "怒氣流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "閃避流"
+        ]
+    },
+    {
+        "id": "中毒流",
+        "color": "#8BC34A",
+        "icon": "☠",
+        "AdvantageousMatchingGenres": [
+            "易傷流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "回復流"
+        ]
+    },
+    {
+        "id": "冰凍流",
+        "color": "#03A9F4",
+        "icon": "❄",
+        "AdvantageousMatchingGenres": [
+            "易傷流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "怒氣流"
+        ]
+    },
+    {
+        "id": "護盾流",
+        "color": "#FFC107",
+        "icon": "🛡",
+        "AdvantageousMatchingGenres": [
+            "生命流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "易傷流"
+        ]
+    },
+    {
+        "id": "易傷流",
+        "color": "#E91E63",
+        "icon": "🎯",
+        "AdvantageousMatchingGenres": [
+            "中毒流",
+            "冰凍流"
+        ],
+        "DisadvantageousEncounteredGenres": []
+    },
+    {
+        "id": "精靈流",
+        "color": "#009688",
+        "icon": "🧚",
+        "AdvantageousMatchingGenres": [
+            "回復流",
+            "生命流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "暴擊流"
+        ]
+    },
+    {
+        "id": "怒氣流",
+        "color": "#FF5722",
+        "icon": "🔥",
+        "AdvantageousMatchingGenres": [
+            "大招流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "冰凍流"
+        ]
+    },
+    {
+        "id": "急速流",
+        "color": "#3F51B5",
+        "icon": "⚡",
+        "AdvantageousMatchingGenres": [
+            "普攻流"
+        ],
+        "DisadvantageousEncounteredGenres": [
+            "閃避流"
+        ]
+    }
+]
