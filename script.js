@@ -1,6 +1,7 @@
 // 流派資料和組合資料
 let schoolsData = [];
 let genreData = [];
+let weaknessData = {};
 
 // 當前選擇的流派
 let selectedSchools = [];
@@ -17,6 +18,11 @@ async function init() {
         const genreResponse = await fetch('genre.json');
         if (!genreResponse.ok) throw new Error('無法讀取流派組合資訊');
         genreData = await genreResponse.json();
+        
+        // 載入克制關係資料
+        const weaknessResponse = await fetch('weakness.json');
+        if (!weaknessResponse.ok) throw new Error('無法讀取克制關係資訊');
+        weaknessData = await weaknessResponse.json();
         
         // 初始化介面
         renderSchoolSelection();
@@ -159,18 +165,12 @@ function calculateAndDisplayRecommendations() {
                 .map(combo => combo.subGenre)
             : [];
         
-        // 找出被克制的流派（分數最低的兩個，排除自己）
+        // 根據weakness.json找出被克制的流派
         let weakness = [];
-        if (mainSchool.score) {
-            weakness = Object.entries(mainSchool.score)
-                .filter(([schoolId, score]) => 
-                    schoolId !== mainSchoolId && 
-                    selectedSchools.includes(schoolId) && 
-                    score < 0
-                )
-                .sort((a, b) => a[1] - b[1]) // 按分數升序排列（分數越低越被克制）
-                .slice(0, 2) // 取前兩個
-                .map(([schoolId]) => schoolId);
+        if (weaknessData && weaknessData[mainSchoolId]) {
+            weakness = weaknessData[mainSchoolId].filter(schoolId => 
+                selectedSchools.includes(schoolId)
+            );
         }
         
         recommendations.push({
