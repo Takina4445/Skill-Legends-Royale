@@ -3,78 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>流派策略分析器</title>
+    <title>流派搭配分析工具</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- 左側：流派選擇區 -->
-        <section class="selection-panel">
-            <div class="panel-header">
-                <h2><span class="icon">⚔</span>流派選擇</h2>
-                <div class="selection-info">
-                    <span class="selected-count">已選擇: <strong id="selectedCount">10</strong>/<span id="totalCount">10</span></span>
-                    <button class="btn btn-toggle-all" id="toggleAll" title="全部關閉">全部關閉</button>
+    <div class="container">
+        <div class="content">
+            <div class="selection-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-gamepad"></i> 流派選擇</h2>
+                    <div class="selected-count">已選擇: <span id="selectedCount">0</span> 個流派</div>
+                </div>
+                <div class="schools-container" id="schoolsContainer">
+                    <!-- 流派圖標將由JavaScript動態生成 -->
+                </div>
+                <div class="panel-controls">
+                    <button class="btn" id="selectAllBtn"><i class="fas fa-check-circle"></i> 全選</button>
+                    <button class="btn" id="clearAllBtn"><i class="fas fa-times-circle"></i> 清除</button>
+                    <button class="btn" id="selectDefaultBtn"><i class="fas fa-dice"></i> 隨機8個</button>
                 </div>
             </div>
             
-            <div class="schools-grid" id="schoolsContainer">
-                <!-- 流派項目將由JavaScript動態生成 -->
-                <div class="loading-message" id="loadingMessage">正在載入流派資訊...</div>
-            </div>
-            
-            <div class="panel-footer">
-                <div class="instructions">
-                    <p class="tip">💡 提示: 點擊流派圖標可開啟/關閉，已關閉流派圖標會變灰</p>
+            <div class="recommendation-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-chart-line"></i> 推薦流派</h2>
+                    <div class="info-text">按分數由高到低排序</div>
                 </div>
-                <div class="controls">
-                    <button class="btn btn-secondary btn-random" id="randomSelect">隨機選擇</button>
-                    <button class="btn btn-secondary btn-reset" id="resetDefault">重置為預設</button>
-                </div>
-            </div>
-        </section>
-        
-        <!-- 右側：建議流派區 -->
-        <section class="recommendation-panel">
-            <div class="panel-header">
-                <h2><span class="icon">📊</span>建議流派</h2>
-                <div class="recommendation-info">
-                    <span class="last-update">最後更新: <span id="lastUpdate">-</span></span>
-                </div>
-            </div>
-            
-            <div class="recommendation-content">
-                <div class="summary-box">
-                    <div class="summary-item">
-                        <span class="summary-label">已選擇流派</span>
-                        <span class="summary-value" id="activeCount">10</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">最佳流派</span>
-                        <span class="summary-value" id="bestSchool">-</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-label">最高分數</span>
-                        <span class="summary-value score-positive" id="bestScore">0</span>
-                    </div>
-                </div>
-                
                 <div class="recommendation-list" id="recommendationList">
-                    <div class="no-recommendation">
-                        <div class="no-data-icon">📋</div>
-                        <h3>尚未計算流派推薦</h3>
-                        <p>請選擇左側的流派以開始分析</p>
-                    </div>
+                    <!-- 推薦內容將由JavaScript動態生成 -->
                 </div>
             </div>
-            
-            <div class="panel-footer">
-                <div class="info-note">
-                    <p>📝 推薦分數計算方式: 搭配流派(+1分) / 被克制流派(-1分)</p>
-                </div>
-            </div>
-        </section>
+        </div>
+        
+        <footer>
+            <p>流派分析工具 v1.0 | 基於流派分數與克制關係計算</p>
+        </footer>
     </div>
 
     <script src="script.js"></script>

@@ -1,323 +1,254 @@
-// 流派策略分析器 - JavaScript邏輯
-document.addEventListener('DOMContentLoaded', function() {
-    // 全域變數
-    let schoolsData = [];
-    let schoolStates = [];
-    
-    // DOM元素
-    const schoolsContainer = document.getElementById('schoolsContainer');
-    const selectedCountElement = document.getElementById('selectedCount');
-    const totalCountElement = document.getElementById('totalCount');
-    const activeCountElement = document.getElementById('activeCount');
-    const bestSchoolElement = document.getElementById('bestSchool');
-    const bestScoreElement = document.getElementById('bestScore');
-    const lastUpdateElement = document.getElementById('lastUpdate');
-    const toggleAllButton = document.getElementById('toggleAll');
-    const randomSelectButton = document.getElementById('randomSelect');
-    const resetDefaultButton = document.getElementById('resetDefault');
-    const recommendationListElement = document.getElementById('recommendationList');
-    
-    // 從外部JSON檔案載入流派資料
-    async function loadSchoolsData() {
-        try {
-            // 顯示載入訊息
-            schoolsContainer.innerHTML = '<div class="loading-message">正在載入流派資訊...</div>';
-            
-            const response = await fetch('schools.json');
-            
-            if (!response.ok) {
-                throw new Error(`HTTP錯誤! 狀態碼: ${response.status}`);
-            }
-            
-            schoolsData = await response.json();
-            
-            // 檢查資料格式
-            if (!Array.isArray(schoolsData) || schoolsData.length === 0) {
-                throw new Error('JSON資料格式錯誤或為空陣列');
-            }
-            
-            // 顯示總流派數
-            totalCountElement.textContent = schoolsData.length;
-            
-            // 初始化流派狀態 (預設全部開啟)
-            schoolStates = Array(schoolsData.length).fill(true);
-            
-            // 啟用按鈕
-            toggleAllButton.disabled = false;
-            randomSelectButton.disabled = false;
-            resetDefaultButton.disabled = false;
-            
-            // 初始化UI
-            createSchoolItems();
-            updateRecommendations();
-            updateLastUpdateTime();
-            
-        } catch (error) {
-            console.error('載入流派資料時發生錯誤:', error);
-            displayErrorMessage('無法讀取流派資訊。請檢查schools.json檔案是否存在且格式正確。');
-        }
+// 流派資料和組合資料
+let schoolsData = [];
+let genreData = [];
+
+// 當前選擇的流派
+let selectedSchools = [];
+
+// 初始化函數
+async function init() {
+    try {
+        // 載入流派資料
+        const schoolsResponse = await fetch('schools.json');
+        if (!schoolsResponse.ok) throw new Error('無法讀取流派資訊');
+        schoolsData = await schoolsResponse.json();
+        
+        // 載入組合資料
+        const genreResponse = await fetch('genre.json');
+        if (!genreResponse.ok) throw new Error('無法讀取流派組合資訊');
+        genreData = await genreResponse.json();
+        
+        // 初始化介面
+        renderSchoolSelection();
+        setupEventListeners();
+        
+        // 預設選擇所有流派
+        selectedSchools = schoolsData.map(school => school.id);
+        updateSelection();
+        
+    } catch (error) {
+        console.error('載入資料時發生錯誤:', error);
+        document.getElementById('errorMessage').style.display = 'flex';
     }
+}
+
+// 渲染流派選擇介面
+function renderSchoolSelection() {
+    const container = document.getElementById('schoolsContainer');
+    container.innerHTML = '';
     
-    // 顯示錯誤訊息
-    function displayErrorMessage(message) {
-        schoolsContainer.innerHTML = `<div class="error-message">${message}</div>`;
-        recommendationListElement.innerHTML = `<div class="error-message">${message}</div>`;
+    schoolsData.forEach(school => {
+        const schoolElement = document.createElement('div');
+        schoolElement.className = 'school-item active';
+        schoolElement.style.color = school.color;
+        schoolElement.innerHTML = `
+            <div class="school-icon">${school.icon}</div>
+            <div class="school-name">${school.id}</div>
+        `;
         
-        // 禁用按鈕
-        toggleAllButton.disabled = true;
-        randomSelectButton.disabled = true;
-        resetDefaultButton.disabled = true;
-        
-        // 清除右側面板
-        bestSchoolElement.textContent = '-';
-        bestScoreElement.textContent = '0';
-        lastUpdateElement.textContent = '-';
-    }
-    
-    // 計算每個流派的分數
-    function calculateScores() {
-        if (schoolsData.length === 0) return [];
-        
-        const scores = [];
-        const enabledSchools = schoolsData.filter((school, index) => schoolStates[index]);
-        
-        // 對每個流派計算分數
-        schoolsData.forEach(school => {
-            let score = 0;
-            const advantageMatches = [];
-            const disadvantageMatches = [];
-            
-            // 檢查已啟用的流派中，哪些是優勢搭配，哪些是劣勢遭遇
-            enabledSchools.forEach(enabledSchool => {
-                if (school.AdvantageousMatchingGenres && 
-                    school.AdvantageousMatchingGenres.includes(enabledSchool.id)) {
-                    score += 1;
-                    advantageMatches.push(enabledSchool.id);
-                }
-                if (school.DisadvantageousEncounteredGenres && 
-                    school.DisadvantageousEncounteredGenres.includes(enabledSchool.id)) {
-                    score -= 1;
-                    disadvantageMatches.push(enabledSchool.id);
-                }
-            });
-            
-            scores.push({
-                id: school.id,
-                score: score,
-                color: school.color || '#5d4a2e',
-                icon: school.icon || '?',
-                advantageMatches: advantageMatches,
-                disadvantageMatches: disadvantageMatches
-            });
+        schoolElement.addEventListener('click', () => {
+            toggleSchoolSelection(school.id);
         });
         
-        // 按分數排序 (由高到低)
-        scores.sort((a, b) => b.score - a.score);
-        
-        return scores;
+        container.appendChild(schoolElement);
+    });
+}
+
+// 設置事件監聽器
+function setupEventListeners() {
+    // 全選按鈕
+    document.getElementById('selectAllBtn').addEventListener('click', () => {
+        selectedSchools = schoolsData.map(school => school.id);
+        updateSelection();
+    });
+    
+    // 清除按鈕
+    document.getElementById('clearAllBtn').addEventListener('click', () => {
+        selectedSchools = [];
+        updateSelection();
+    });
+    
+    // 隨機選擇8個流派
+    document.getElementById('selectDefaultBtn').addEventListener('click', () => {
+        // 打亂陣列並取前8個
+        const shuffled = [...schoolsData].sort(() => 0.5 - Math.random());
+        selectedSchools = shuffled.slice(0, 8).map(school => school.id);
+        updateSelection();
+    });
+}
+
+// 切換流派選擇狀態
+function toggleSchoolSelection(schoolId) {
+    const index = selectedSchools.indexOf(schoolId);
+    
+    if (index === -1) {
+        // 如果流派未被選擇，則加入
+        selectedSchools.push(schoolId);
+    } else {
+        // 如果流派已被選擇，則移除
+        selectedSchools.splice(index, 1);
     }
     
-    // 更新已選擇流派計數
-    function updateSelectionCount() {
-        if (schoolStates.length === 0) return;
-        
-        const activeCount = schoolStates.filter(state => state).length;
-        selectedCountElement.textContent = activeCount;
-        activeCountElement.textContent = activeCount;
+    updateSelection();
+}
+
+// 更新選擇狀態和推薦
+function updateSelection() {
+    // 更新選擇數量
+    document.getElementById('selectedCount').textContent = selectedSchools.length;
+    
+    // 更新流派圖標狀態
+    const schoolItems = document.querySelectorAll('.school-item');
+    schoolItems.forEach(item => {
+        const schoolName = item.querySelector('.school-name').textContent;
+        if (selectedSchools.includes(schoolName)) {
+            item.classList.add('active');
+            item.classList.remove('inactive');
+        } else {
+            item.classList.remove('active');
+            item.classList.add('inactive');
+        }
+    });
+    
+    // 計算並顯示推薦
+    calculateAndDisplayRecommendations();
+}
+
+// 根據流派ID獲取流派資訊
+function getSchoolInfo(schoolId) {
+    return schoolsData.find(school => school.id === schoolId);
+}
+
+// 計算並顯示推薦
+function calculateAndDisplayRecommendations() {
+    const container = document.getElementById('recommendationList');
+    
+    if (selectedSchools.length === 0) {
+        container.innerHTML = `
+            <div class="recommendation-item" style="border-left-color: #8b949e; text-align: center;">
+                <div class="recommendation-title">
+                    <i class="fas fa-info-circle"></i>
+                    <span>請選擇至少一個流派</span>
+                </div>
+                <p style="margin-top: 10px; color: #8b949e;">點擊左側流派圖標開始選擇</p>
+            </div>
+        `;
+        return;
     }
     
-    // 創建流派項目
-    function createSchoolItems() {
-        if (schoolsData.length === 0) return;
+    // 計算每個主流派的分數
+    const recommendations = [];
+    
+    selectedSchools.forEach(mainSchoolId => {
+        const mainSchool = getSchoolInfo(mainSchoolId);
+        if (!mainSchool) return;
         
-        schoolsContainer.innerHTML = '';
+        let totalScore = 0;
         
-        schoolsData.forEach((school, index) => {
-            const schoolItem = document.createElement('div');
-            schoolItem.className = `school-item ${schoolStates[index] ? 'active' : 'disabled'}`;
-            schoolItem.dataset.id = school.id;
-            schoolItem.dataset.index = index;
-            
-            const statusIcon = schoolStates[index] ? '✅' : '⭕';
-            const statusText = schoolStates[index] ? '已開啟' : '已關閉';
-            
-            schoolItem.innerHTML = `
-                <div class="school-icon" style="background-color: ${school.color || '#5d4a2e'}">
-                    ${school.icon || '?'}
-                </div>
-                <div class="school-info">
-                    <div class="school-name">${school.id}</div>
-                    <div class="school-status ${schoolStates[index] ? 'active' : 'disabled'}">
-                        <span class="school-status-icon">${statusIcon}</span> ${statusText}
-                    </div>
-                </div>
-            `;
-            
-            // 點擊切換狀態
-            schoolItem.addEventListener('click', () => {
-                toggleSchool(index);
-            });
-            
-            schoolsContainer.appendChild(schoolItem);
+        // 計算分數總和
+        selectedSchools.forEach(schoolId => {
+            if (mainSchool.score && mainSchool.score.hasOwnProperty(schoolId)) {
+                totalScore += mainSchool.score[schoolId];
+            }
         });
         
-        updateSelectionCount();
-    }
-    
-    // 切換流派狀態
-    function toggleSchool(index) {
-        if (index >= 0 && index < schoolStates.length) {
-            schoolStates[index] = !schoolStates[index];
-            createSchoolItems();
-            updateRecommendations();
-            updateLastUpdateTime();
-        }
-    }
-    
-    // 更新推薦內容
-    function updateRecommendations() {
-        if (schoolsData.length === 0) return;
+        // 找出搭配組合
+        const combinations = genreData && genreData.length > 0 
+            ? genreData
+                .filter(combo => combo.mainGenre === mainSchoolId && selectedSchools.includes(combo.subGenre))
+                .map(combo => combo.subGenre)
+            : [];
         
-        const scores = calculateScores();
-        
-        // 更新最佳流派資訊
-        if (scores.length > 0) {
-            const bestSchool = scores[0];
-            bestSchoolElement.textContent = bestSchool.id;
-            bestScoreElement.textContent = bestSchool.score;
-            
-            // 設定分數顏色
-            if (bestSchool.score > 0) {
-                bestScoreElement.className = 'summary-value score-positive';
-            } else if (bestSchool.score < 0) {
-                bestScoreElement.className = 'summary-value score-negative';
-            } else {
-                bestScoreElement.className = 'summary-value';
-            }
+        // 找出被克制的流派（分數最低的兩個，排除自己）
+        let weakness = [];
+        if (mainSchool.score) {
+            weakness = Object.entries(mainSchool.score)
+                .filter(([schoolId, score]) => 
+                    schoolId !== mainSchoolId && 
+                    selectedSchools.includes(schoolId) && 
+                    score < 0
+                )
+                .sort((a, b) => a[1] - b[1]) // 按分數升序排列（分數越低越被克制）
+                .slice(0, 2) // 取前兩個
+                .map(([schoolId]) => schoolId);
         }
         
-        // 更新推薦列表
-        if (scores.length > 0) {
-            recommendationListElement.innerHTML = scores.map((school, index) => {
-                const isTop = index === 0;
-                const scoreClass = school.score > 0 ? 'score-positive' : (school.score < 0 ? 'score-negative' : '');
-                
-                return `
-                    <div class="recommendation-item ${isTop ? 'top' : ''}">
-                        <div class="recommendation-header">
-                            <div class="recommendation-rank">${index + 1}</div>
-                            <div class="recommendation-icon" style="background-color: ${school.color}">
-                                ${school.icon}
-                            </div>
-                            <div class="recommendation-main">
-                                <div class="recommendation-name">${school.id}</div>
-                                <div class="recommendation-score ${scoreClass}">推薦分數: ${school.score > 0 ? '+' : ''}${school.score}</div>
-                            </div>
-                        </div>
-                        <div class="recommendation-details">
-                            <div class="detail-box">
-                                <div class="detail-title advantage">搭配流派</div>
-                                <div class="detail-list">
-                                    ${school.advantageMatches.length > 0 
-                                        ? school.advantageMatches.map(match => `<span class="detail-item">${match}</span>`).join('')
-                                        : '<span class="detail-item empty">無搭配流派</span>'}
-                                </div>
-                            </div>
-                            <div class="detail-box">
-                                <div class="detail-title disadvantage">被克制的流派</div>
-                                <div class="detail-list">
-                                    ${school.disadvantageMatches.length > 0 
-                                        ? school.disadvantageMatches.map(match => `<span class="detail-item">${match}</span>`).join('')
-                                        : '<span class="detail-item empty">無克制流派</span>'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+        recommendations.push({
+            id: mainSchoolId,
+            color: mainSchool.color || '#58a6ff',
+            icon: mainSchool.icon || '❓',
+            score: totalScore,
+            combinations: combinations,
+            weakness: weakness
+        });
+    });
+    
+    // 按分數從高到低排序
+    recommendations.sort((a, b) => b.score - a.score);
+    
+    // 顯示推薦
+    displayRecommendations(recommendations);
+}
+
+// 顯示推薦列表
+function displayRecommendations(recommendations) {
+    const container = document.getElementById('recommendationList');
+    
+    if (recommendations.length === 0) {
+        container.innerHTML = '<div class="recommendation-item" style="border-left-color: #8b949e;">無推薦結果</div>';
+        return;
+    }
+    
+    container.innerHTML = recommendations.map(rec => {
+        // 生成搭配流派的HTML
+        let combinationsHTML = '';
+        if (rec.combinations.length > 0) {
+            combinationsHTML = rec.combinations.map(combo => {
+                const schoolInfo = getSchoolInfo(combo);
+                return `<span class="combination-item" style="color: ${schoolInfo?.color || '#58a6ff'}">
+                    <span class="school-icon-small">${schoolInfo?.icon || '❓'}</span>
+                    ${combo}
+                </span>`;
             }).join('');
         } else {
-            recommendationListElement.innerHTML = `
-                <div class="no-recommendation">
-                    <div class="no-data-icon">📋</div>
-                    <h3>尚未計算流派推薦</h3>
-                    <p>請選擇左側的流派以開始分析</p>
+            combinationsHTML = '<span style="color: #8b949e;">無推薦組合</span>';
+        }
+        
+        // 生成被克制流派的HTML
+        let weaknessHTML = '';
+        if (rec.weakness.length > 0) {
+            weaknessHTML = rec.weakness.map(weak => {
+                const schoolInfo = getSchoolInfo(weak);
+                return `<span class="weakness-item" style="color: ${schoolInfo?.color || '#f85149'}">
+                    <span class="school-icon-small">${schoolInfo?.icon || '❓'}</span>
+                    ${weak}
+                </span>`;
+            }).join('');
+        } else {
+            weaknessHTML = '<span style="color: #8b949e;">無明顯克制</span>';
+        }
+        
+        return `
+            <div class="recommendation-item" style="border-left-color: ${rec.color}">
+                <div class="recommendation-header">
+                    <div class="recommendation-title">
+                        <span>${rec.icon}</span>
+                        <span>${rec.id}</span>
+                    </div>
+                    <div class="score">${rec.score}分</div>
                 </div>
-            `;
-        }
-    }
-    
-    // 更新最後更新時間
-    function updateLastUpdateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('zh-TW', { 
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        lastUpdateElement.textContent = timeString;
-    }
-    
-    // 切換所有流派狀態
-    toggleAllButton.addEventListener('click', function() {
-        if (schoolStates.length === 0) return;
-        
-        const allActive = schoolStates.every(state => state);
-        schoolStates = Array(schoolsData.length).fill(!allActive);
-        toggleAllButton.textContent = allActive ? '全部開啟' : '全部關閉';
-        toggleAllButton.title = allActive ? '全部開啟' : '全部關閉';
-        createSchoolItems();
-        updateRecommendations();
-        updateLastUpdateTime();
-    });
-    
-    // 隨機選擇流派
-    randomSelectButton.addEventListener('click', function() {
-        if (schoolsData.length === 0) return;
-        
-        // 隨機決定要選擇多少個流派 (3到8個之間)
-        const minSelection = 3;
-        const maxSelection = Math.min(8, schoolsData.length);
-        const targetSelection = Math.floor(Math.random() * (maxSelection - minSelection + 1)) + minSelection;
-        
-        // 先全部關閉
-        schoolStates = Array(schoolsData.length).fill(false);
-        
-        // 隨機選擇流派
-        const randomIndices = [];
-        while (randomIndices.length < targetSelection) {
-            const randomIndex = Math.floor(Math.random() * schoolsData.length);
-            if (!randomIndices.includes(randomIndex)) {
-                randomIndices.push(randomIndex);
-            }
-        }
-        
-        // 開啟選中的流派
-        randomIndices.forEach(index => {
-            schoolStates[index] = true;
-        });
-        
-        // 更新按鈕文字
-        toggleAllButton.textContent = '全部關閉';
-        toggleAllButton.title = '全部關閉';
-        
-        createSchoolItems();
-        updateRecommendations();
-        updateLastUpdateTime();
-    });
-    
-    // 重置為預設 (全部開啟)
-    resetDefaultButton.addEventListener('click', function() {
-        if (schoolsData.length === 0) return;
-        
-        schoolStates = Array(schoolsData.length).fill(true);
-        toggleAllButton.textContent = '全部關閉';
-        toggleAllButton.title = '全部關閉';
-        createSchoolItems();
-        updateRecommendations();
-        updateLastUpdateTime();
-    });
-    
-    // 初始化：載入流派資料
-    loadSchoolsData();
-});
+                <div class="combinations">
+                    <strong><i class="fas fa-users"></i> 搭配流派:</strong> 
+                    <div class="combinations-list">${combinationsHTML}</div>
+                </div>
+                <div class="weakness">
+                    <strong><i class="fas fa-skull-crossbones"></i> 被克制流派:</strong> 
+                    <div class="weakness-list">${weaknessHTML}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 頁面載入完成後初始化
+document.addEventListener('DOMContentLoaded', init);
